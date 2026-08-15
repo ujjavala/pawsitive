@@ -25,21 +25,19 @@ function classifyGeminiError(error: unknown) {
 }
 
 export default async function handler(request: Request) {
-  if (request.method === 'GET') return Response.json({ configured: Boolean(process.env.GEMINI_API_KEY), model: configuredModel(), models: supportedModels })
+  if (request.method === 'GET') return Response.json({ configured: Boolean(process.env.GEMINI_API_KEY), model: configuredModel() })
   if (request.method !== 'POST') return Response.json({ error: 'method_not_allowed' }, { status: 405 })
   try {
     const key = process.env.GEMINI_API_KEY
     if (!key) return Response.json({ error: 'analysis_unavailable' }, { status: 503 })
     const form = await request.formData()
     const image = form.get('image')
-    const requestedModel = form.get('model')
-    const model = typeof requestedModel === 'string' && supportedModelIds.has(requestedModel) ? requestedModel : configuredModel()
     if (!(image instanceof File)) return Response.json({ error: 'image_required' }, { status: 400 })
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(image.type) || image.size > 5_000_000) return Response.json({ error: 'invalid_image' }, { status: 400 })
     const data = Buffer.from(await image.arrayBuffer()).toString('base64')
     const ai = new GoogleGenAI({ apiKey: key })
     const response = await ai.models.generateContent({
-      model,
+      model: configuredModel(),
       contents: [{ inlineData: { data, mimeType: image.type } }, { text: dogAnalysisInstruction }],
       config: { responseMimeType: 'application/json', responseJsonSchema: z.toJSONSchema(dogAnalysisContentSchema) },
     })

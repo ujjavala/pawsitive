@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { demoAnalysis } from '../lib/analysis'
-import { useAppStore } from '../store/useAppStore'
 import UnderstandDog from './UnderstandDog'
 
 const originalLanguageModel = Object.getOwnPropertyDescriptor(globalThis, 'LanguageModel')
@@ -11,7 +10,6 @@ const originalCreateObjectUrl = Object.getOwnPropertyDescriptor(URL, 'createObje
 const originalRevokeObjectUrl = Object.getOwnPropertyDescriptor(URL, 'revokeObjectURL')
 
 beforeEach(() => {
-  useAppStore.setState({ aiAnalysisEnabled: true })
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ configured: false }), {
     status: 200,
     headers: { 'content-type': 'application/json' },

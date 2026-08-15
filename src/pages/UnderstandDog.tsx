@@ -6,7 +6,6 @@ import { PipMascot } from '../components/PipMascot'
 import { Button, Card, Eyebrow, LinkButton } from '../components/ui'
 import { demoAnalysis, dogAnalysisSchema } from '../lib/analysis'
 import { analyzeOnDevice, OnDeviceAnalysisError } from '../lib/onDeviceAnalysis'
-import { useAppStore } from '../store/useAppStore'
 import type { DogAnalysis } from '../types'
 
 class ServerAnalysisError extends Error {
@@ -19,10 +18,9 @@ class ServerAnalysisError extends Error {
   }
 }
 
-const fetchServerAnalysis = async (file: File, model: string, signal: AbortSignal) => {
+const fetchServerAnalysis = async (file: File, signal: AbortSignal) => {
   const body = new FormData()
   body.append('image', file)
-  body.append('model', model)
   const response = await fetch('/api/analyze-dog', { method: 'POST', body, signal })
   const payload: unknown = await response.json()
   if (!response.ok) {
@@ -54,8 +52,6 @@ export default function UnderstandDog() {
   const [error, setError] = useState('')
   const [geminiIssue, setGeminiIssue] = useState(false)
   const [serverConfigured, setServerConfigured] = useState<boolean | null>(null)
-  const aiEnabled = useAppStore((state) => state.aiAnalysisEnabled)
-  const geminiModel = useAppStore((state) => state.geminiModel)
   const controller = useRef<AbortController | null>(null)
 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview) }, [preview])
@@ -71,11 +67,6 @@ export default function UnderstandDog() {
 
   const choose = (selected?: File) => {
     if (!selected) return
-    if (!aiEnabled) {
-      setGeminiIssue(true)
-      setError('Uh-oh! It looks like AI photo analysis is turned off. Enable it in Your preferences before uploading a photo.')
-      return
-    }
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(selected.type) || selected.size > 5_000_000) {
       setGeminiIssue(false)
       setError('Choose a JPG, PNG, or WebP image smaller than 5 MB.')
@@ -117,12 +108,6 @@ export default function UnderstandDog() {
 
   const analyze = async () => {
     if (!file) return
-    if (!aiEnabled) {
-      setGeminiIssue(true)
-      setError('Uh-oh! It looks like AI photo analysis is turned off. Enable it in Your preferences, then try again.')
-      return
-    }
-
     setLoading(true)
     setLoadingMessage('Pip is checking the visible clues…')
     setDownloadProgress(null)
@@ -143,7 +128,7 @@ export default function UnderstandDog() {
     }, 10_000)
 
     try {
-      setAnalysis(await fetchServerAnalysis(file, geminiModel, controller.current.signal))
+      setAnalysis(await fetchServerAnalysis(file, controller.current.signal))
     } catch (serverError) {
       const keyMissing = serverError instanceof ServerAnalysisError && serverError.code === 'analysis_unavailable'
       if (keyMissing || timedOut) {
@@ -225,7 +210,7 @@ export default function UnderstandDog() {
             </label>
           )}
           {error && <div className={`error-message ${geminiIssue ? 'pip-config-message' : ''}`} role="alert">{geminiIssue ? <PipMascot mood="confused" size={105}/> : <AlertCircle/>}<div><strong>{error}</strong><span>{geminiIssue ? 'Your photo stays on this device.' : 'Your image has not been saved.'}</span>{geminiIssue && <Link to="/settings">Open Your preferences <ArrowRight size={15}/></Link>}</div></div>}
-          <div className="upload-actions"><Button disabled={!file || !aiEnabled} onClick={analyze}><Upload size={18}/> Help me understand</Button><button type="button" className="text-button" onClick={() => { setAnalysis(demoAnalysis); setPreview('') }}>Try the labelled demo photo <ArrowRight size={15}/></button></div>
+          <div className="upload-actions"><Button disabled={!file} onClick={analyze}><Upload size={18}/> Help me understand</Button><button type="button" className="text-button" onClick={() => { setAnalysis(demoAnalysis); setPreview('') }}>Try the labelled demo photo <ArrowRight size={15}/></button></div>
         </Card>
         <aside>
           <Card><Eyebrow>Before you begin</Eyebrow><h3>A photo is a clue, not a guarantee.</h3><ul className="check-list"><li><ShieldCheck/> We describe visible signals only</li><li><ShieldCheck/> We use cautious language</li><li><ShieldCheck/> We always recommend safe space</li></ul></Card>

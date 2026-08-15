@@ -142,7 +142,7 @@ So the Gemini integration is deliberately designed to acknowledge uncertainty, u
 
 That safety work does not rely only on the interface. In the server path, the browser sends the image to a same-origin **Vercel Function**, so the Gemini key is never exposed to client code. The function rejects unsupported files and images larger than 5 MB before calling Gemini, requests JSON matching a schema, validates the result with Zod, and rejects responses containing certainty claims such as "definitely friendly", "won't bite" or "safe to approach". The UI validates the response again before rendering it as cards, never as model-generated HTML.
 
-The Gemini model is user-selectable from a server-validated allowlist. The current default is **Gemini 3.5 Flash-Lite**, and unsupported model IDs are rejected instead of being passed through to the provider. For local development, Vite loads only the server-side Gemini environment variables and mounts the same `/api/analyze-dog` handler used in deployment. That means `npm run dev` runs the UI and local API together without requiring the Vercel CLI or a Vercel login.
+The Gemini model is configured server-side with `GEMINI_MODEL` and checked against an allowlist. The current default is **Gemini 3.5 Flash-Lite**, and unsupported model IDs fall back to that default instead of being passed through to the provider. For local development, Vite loads only the server-side Gemini environment variables and mounts the same `/api/analyze-dog` handler used in deployment. That means `npm run dev` runs the UI and local API together without requiring the Vercel CLI or a Vercel login.
 
 ### Private on-device fallback with Gemini Nano
 

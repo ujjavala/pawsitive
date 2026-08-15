@@ -11,7 +11,7 @@ Pawsitive is a calm, playful learning application for people who feel nervous ar
 - Eight practical scenarios, including a linked two-perspective interaction
 - Gentle confidence, progress, and achievement tracking in localStorage
 - Animated SVG guide dog Pip, reduced-motion support, and optional synthesized UI sound
-- Server-side Gemini dog-image analysis with user-selectable verified models
+- Server-side Gemini dog-image analysis with an environment-configured, allowlisted model
 - Private on-device image analysis with Chrome's built-in Gemini Nano Prompt API when no server key is configured
 - Structured output, shared runtime validation, and conservative safety language across both AI paths
 - A clearly labelled seeded demo result when no API key is available
