@@ -1,7 +1,7 @@
 import { z } from 'zod'
-import type { DogAnalysis } from '../types'
+import type { DogAnalysis } from '../types.js'
 
-export const dogAnalysisSchema = z.object({
+export const dogAnalysisContentSchema = z.object({
   visibleSignals: z.array(z.object({
     signal: z.string().min(1).max(80),
     confidence: z.enum(['low', 'medium', 'high']),
@@ -11,7 +11,10 @@ export const dogAnalysisSchema = z.object({
   uncertainties: z.array(z.string().min(1).max(240)).min(1).max(6),
   recommendedAction: z.string().min(1).max(400),
   safetyNote: z.string().min(1).max(400),
-  source: z.enum(['gemini', 'fallback', 'demo']).optional(),
+})
+
+export const dogAnalysisSchema = dogAnalysisContentSchema.extend({
+  source: z.enum(['gemini', 'on-device', 'fallback', 'demo']).optional(),
 })
 
 const prohibited = [/(definitely|certainly) (friendly|aggressive|safe|dangerous)/i, /won['’]?t bite/i, /safe to approach/i, /you can approach/i]

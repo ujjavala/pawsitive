@@ -16,9 +16,18 @@ While thinking about this challenge, I started wondering if the problem was part
 
 If a dog is wagging its tail, what does that actually mean? If it is staring at me, should I move away? If it is barking, is it excited, nervous, protective, or something else? And if a dog is approaching me on a footpath, what should I actually do?
 
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/tzqsrlvhjvy28htga0lu.png)
+
+
+
 That question became **Pawsitive**.
 
 Pawsitive is an interactive learning app for people who feel nervous around dogs. Instead of telling people not to be afraid, it tries to make encounters feel less unpredictable by teaching them how to recognise common body-language signals, understand situations, and make calmer decisions.
+
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/d9fuoglo2dh69twmpygy.png)
+
 
 But then I realised there was another side to the interaction.
 
@@ -32,9 +41,17 @@ The person approaching might be thinking:
 
 Both people can be looking at the same dog while experiencing completely different situations.
 
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/4ar7kdacgs5xisqer6ue.png)
+
+
+
 So Pawsitive has two learning paths: **people who are nervous around dogs and dog owners**.
 
 The first helps people understand dogs and build confidence. The second helps owners recognise when someone might be uncomfortable, why giving people space matters, and why "my dog is friendly" doesn't necessarily make an approaching dog less intimidating.
+
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/s1pbkdocgokwga6hutbp.png)
+
 
 That became the idea behind the whole app:
 
@@ -43,7 +60,10 @@ That became the idea behind the whole app:
 ## Demo
 
 Github link: https://github.com/ujjavala/pawsitive
+
 Vercel deployment: https://pawsitive-nine.vercel.app/
+
+> Note: The Vercel deployment does not include a Gemini API key. On supported desktop Chrome devices, **Understand This Dog** falls back to Chrome's built-in Gemini Nano model and analyses the photo privately on-device. You can also run the app locally and add `GEMINI_API_KEY` to `.env.local` for server-side Gemini analysis.
 
 The experience begins with three gentle onboarding questions: how comfortable you are around unfamiliar dogs, which situations feel most uncomfortable, and what you want to achieve. Someone who selects "Very nervous" isn't immediately thrown into a stressful scenario. They start by learning the basics, exploring relaxed and tense body language before gradually moving into realistic situations. Their answer also sets an initial confidence score, but it never locks content or forces them into an interaction.
 
@@ -53,7 +73,12 @@ You might be walking down a footpath when a dog approaches with its owner. Inste
 
 The perspective can then switch to the owner's side. The same encounter looks very different when you realise that giving someone space may be more helpful than reassuring them that your dog is friendly.
 
-Finally, **Understand This Dog** lets users upload a dog photo and use Gemini to explore the visible body-language cues.
+Finally, **Understand This Dog** lets users upload a dog photo and use Gemini to explore the visible body-language cues. It uses the configured server model when a Gemini key is available and falls back to Chrome's built-in Gemini Nano model when the server has no key and the browser supports multimodal on-device AI.
+
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/tg37x4bp18330hv8iixe.png)
+
+
 
 The entire experience is designed to be short enough to explore in a few minutes while still telling the complete story.
 
@@ -63,7 +88,7 @@ I wanted Pawsitive to feel like something you would actually want to use, rather
 
 That led to a bright, playful interface, an animated SVG dog, playful scenario scenes, gentle sounds, small celebrations, and a mascot named **Pip** who follows the user through the experience.
 
-The app is built with **React, TypeScript and Vite**, with **Tailwind CSS and Radix UI primitives** for the interface, **Motion for React** (the current Framer Motion package) for animation, SVG illustrations for Pip, and **Zustand with localStorage** for progress tracking. **Zod** validates Gemini's structured response at runtime, while **Lucide** provides the icon system.
+The app is built with **React, TypeScript and Vite**, with **Tailwind CSS and Radix UI primitives** for the interface, **Motion for React** (the current Framer Motion package) for animation, SVG illustrations for Pip, and **Zustand with localStorage** for progress tracking. **Zod** validates structured AI responses at runtime, while **Lucide** provides the icon system. Server inference uses Google's `@google/genai` SDK, while private inference uses Chrome's built-in `LanguageModel` Prompt API without adding another model runtime to the application bundle.
 
 There is deliberately no authentication or database in the MVP. You can open the app and start learning immediately.
 
@@ -75,7 +100,17 @@ Pip changes depending on what is happening. They can tilt their head during a qu
 
 The animations are deliberately gentle. There are no sudden dogs jumping towards the screen or unexpected barking, because an app designed for nervous dog lovers shouldn't accidentally make them nervous.
 
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/jgoo59m0wwlggie3l1nc.png)
+
+
+
 The same thinking shaped the sound design. The current build uses short, synthesised feedback tones for correct answers, lesson completion and soft errors. I deliberately left barking and other dog sounds out of the learning flow so the app cannot unexpectedly startle someone. Sound can be disabled, and motion can be reduced from inside the app. Pip also respects the device's own reduced-motion preference.
+
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/x9hsmeupyco0nyflcc8n.png)
+
+
 
 The goal is simple: **make the app feel alive without making it overwhelming.**
 
@@ -84,6 +119,10 @@ The goal is simple: **make the app feel alive without making it overwhelming.**
 The most interesting part of Pawsitive is **Understand This Dog**, where I wanted AI to do something more meaningful than power another generic chatbot.
 
 A user can upload a JPG, PNG or WebP photo of a dog, and Gemini analyses the visible signals in the image. The response is structured into five parts:
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/untu6j691jycj4e3mmyd.png)
+
+
 
 **What we can see** — observable cues such as posture, ears, tail visibility and body position, each with a visual-confidence level.
 
@@ -101,9 +140,36 @@ I didn't want to build an AI-powered "Is this dog safe?" detector. A photograph 
 
 So the Gemini integration is deliberately designed to acknowledge uncertainty, using language such as "may indicate" and "can be consistent with" rather than making definitive claims.
 
-That safety work happens behind a server boundary rather than relying only on the interface. The browser sends the image to a same-origin **Vercel Function**, so the Gemini key is never exposed to client code. The function rejects unsupported files and images larger than 5 MB before calling Gemini, requests JSON matching a schema, validates the result with Zod, and rejects responses containing certainty claims such as "definitely friendly", "won't bite" or "safe to approach". The UI validates the response again before rendering it as cards, never as model-generated HTML.
+That safety work does not rely only on the interface. In the server path, the browser sends the image to a same-origin **Vercel Function**, so the Gemini key is never exposed to client code. The function rejects unsupported files and images larger than 5 MB before calling Gemini, requests JSON matching a schema, validates the result with Zod, and rejects responses containing certainty claims such as "definitely friendly", "won't bite" or "safe to approach". The UI validates the response again before rendering it as cards, never as model-generated HTML.
 
-The AI feature also fails independently from the rest of the product. If live analysis is unavailable, the user sees a plain retry message and can continue learning. For challenge demos, there is a clearly labelled sample-photo experience with a seeded educational result; it never pretends to be a live result for a photo the user uploaded. Uploaded images are sent only after the user presses **Help me understand**, and Pawsitive does not add them to application storage.
+The Gemini model is user-selectable from a server-validated allowlist. The current default is **Gemini 3.5 Flash-Lite**, and unsupported model IDs are rejected instead of being passed through to the provider. For local development, Vite loads only the server-side Gemini environment variables and mounts the same `/api/analyze-dog` handler used in deployment. That means `npm run dev` runs the UI and local API together without requiring the Vercel CLI or a Vercel login.
+
+### Private on-device fallback with Gemini Nano
+
+When the server reports that no `GEMINI_API_KEY` is configured, Pawsitive checks Chrome's built-in `LanguageModel` API with the exact text-and-image capabilities required by the feature. If the model is ready, the selected image is analysed locally. If Chrome needs to download the model first, the interface shows download progress and provides a cancel action.
+
+The on-device session receives the same cautious system instruction as server Gemini, accepts the selected photo as an image `Blob`, and returns JSON constrained by the same schema. Its output passes through the same Zod validation and certainty checks before anything is displayed. The session is destroyed after analysis to release browser resources, and successful results are clearly labelled **analysed privately on this device**.
+
+The fallback order is:
+
+1. Use server Gemini when `GEMINI_API_KEY` is configured.
+2. Use Chrome's built-in Gemini Nano model when the key is absent and the requested multimodal session is supported.
+3. Show an honest unavailable message and retain the clearly labelled seeded demo when neither option is available.
+
+### Prerequisites for private on-device analysis
+
+Chrome's foundation-model APIs are a progressive enhancement rather than universal browser functionality. The current documented requirements are:
+
+- **Browser:** Google Chrome 148 or newer for the web Prompt API.
+- **Operating system:** Windows 10 or 11, macOS 13 or newer, Linux, or a Chromebook Plus device. Chrome on Android, iOS, and non-Plus Chromebooks is not currently supported.
+- **Storage:** At least 22 GB free on the volume containing the Chrome profile. Chrome removes the model if available storage later drops below 10 GB.
+- **Compute:** Strictly more than 4 GB GPU VRAM, or at least 16 GB system RAM and four CPU cores for CPU execution.
+- **Network:** An unmetered connection for the initial browser-managed model download. Subsequent inference can run without a network connection.
+- **User activation:** The first download must be started after a meaningful user interaction, which Pawsitive provides through the **Help me understand** button.
+
+For local testing, enable `chrome://flags/#optimization-guide-on-device-model` and `chrome://flags/#prompt-api-for-gemini-nano`, then fully relaunch Chrome. Download and model errors can be inspected at `chrome://on-device-internals`. After the initial download, Chrome states that inference is local and no prompt or image data is sent to Google or another third party.
+
+The AI feature also fails independently from the rest of the product. If neither server nor on-device analysis is available, the user sees a plain explanation and can continue learning. For challenge demos, there is a clearly labelled sample-photo experience with a seeded educational result; it never pretends to be a live result for a photo the user uploaded. Images are processed only after the user presses **Help me understand**, and Pawsitive does not add them to application storage. On-device analysis keeps the image local; server analysis does not store it.
 
 AI isn't the authority here. **It is the teacher.**
 
@@ -114,6 +180,10 @@ The product principle follows a simple progression:
 **Understand → Recognise → Respond → Build Confidence**
 
 The actual lesson content is organised into **Understanding Dogs**, **Meeting Dogs Safely**, and **Thoughtful Ownership** modules. Users first learn about relaxed and tense body language, tail movement, barking, staring, and why individual signals shouldn't be interpreted in isolation.
+
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/cbvilh0upbdn1eay9j2s.png)
+
 
 They then move into realistic scenarios and make decisions for themselves.
 
@@ -131,6 +201,10 @@ The owner experience came directly from thinking about what makes dog encounters
 
 A dog owner may genuinely have a friendly dog and genuinely believe nothing is wrong. But that doesn't necessarily change how the other person feels.
 
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/mdexqfg28x25eppmtouq.png)
+
+
 One scenario asks an owner what they should do when they notice someone moving away from their dog.
 
 The answer isn't to follow them and explain that the dog is friendly. It's simply to create some space.
@@ -141,13 +215,20 @@ That captures what I wanted Pawsitive to teach:
 
 The paired scenario is linked in both directions in the content model. Completing the person and owner sides unlocks the **Perspective Shift** achievement, making the product's central idea visible in the progress journey rather than leaving it as marketing copy.
 
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/84zjyxz9dyi7sy15l79e.png)
+
+
+
 ## Testing the Safety Net
 
 Because Pawsitive mixes educational content, stateful rewards and model output, I did not want the demo to depend only on a happy-path click-through.
 
 The project uses **Vitest and React Testing Library**. The current automated suite checks the required lesson, scenario, signal and achievement counts; unique IDs and answer keys; two-way scenario links; confidence clamping and one-time rewards; and the dog-analysis schema. It also contains regression cases for unsafe AI phrases including "definitely friendly", "won't bite", "you can approach this dog" and "safe to approach".
 
-Before submission, the strict TypeScript check, all **15 automated tests**, and the Vite production build pass.
+The on-device adapter tests cover unsupported browsers, successful structured multimodal output, browser model-download progress, session cleanup, and rejection of unsafe local-model certainty. A page-level test confirms that a missing server key selects the private path without uploading the image.
+
+Before submission, the strict TypeScript check, all **20 automated tests**, ESLint, and the Vite production build pass.
 
 ## Why I Built It
 
@@ -169,7 +250,16 @@ For someone who is afraid of dogs, that might not feel like a small thing at all
 
 I'm submitting Pawsitive for **Best Use of Google AI** because Gemini is part of the core learning experience rather than simply being added as a chatbot.
 
-Through **Understand This Dog**, its multimodal capabilities help users explore visible dog body-language cues while deliberately teaching the limits of what can be inferred from a single image.
+Through **Understand This Dog**, Gemini's multimodal capabilities help users explore visible dog body-language cues while deliberately teaching the limits of what can be inferred from a single image. The app can use a securely configured server model or Chrome's built-in Gemini Nano model, with shared structured-output and safety controls across both paths.
+
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/tr3wistu9xwmam2chxjf.png)
+
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/00lficr0bohhmiavuiq9.png)
+
+
+
 
 That uncertainty is part of the feature, not a limitation hidden from the user.
 

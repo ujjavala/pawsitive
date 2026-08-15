@@ -53,7 +53,7 @@ export interface DogAnalysis {
   uncertainties: string[]
   recommendedAction: string
   safetyNote: string
-  source?: 'gemini' | 'fallback' | 'demo'
+  source?: 'gemini' | 'on-device' | 'fallback' | 'demo'
 }
 
 export interface OnboardingAnswers {

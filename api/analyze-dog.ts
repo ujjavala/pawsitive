@@ -1,15 +1,8 @@
 import { GoogleGenAI } from '@google/genai'
 import { z } from 'zod'
+import { dogAnalysisContentSchema, hasUnsafeCertainty } from '../src/lib/analysis.js'
+import { dogAnalysisInstruction } from '../src/lib/analysisPrompt.js'
 
-const schema = z.object({
-  visibleSignals: z.array(z.object({ signal: z.string(), confidence: z.enum(['low', 'medium', 'high']), explanation: z.string() })).min(1).max(8),
-  possibleInterpretation: z.string(),
-  uncertainties: z.array(z.string()).min(1).max(6),
-  recommendedAction: z.string(),
-  safetyNote: z.string(),
-})
-const unsafe = [/(definitely|certainly) (friendly|aggressive|safe|dangerous)/i, /won['’]?t bite/i, /safe to approach/i, /you can approach/i]
-const instruction = `You are an educational assistant helping people understand visible dog body-language cues. Analyse only observable visual signals. Never diagnose emotion, predict behaviour, or state that a dog is safe, friendly, aggressive, dangerous, will not bite, or can be approached. Use cautious language such as appears, may indicate, and can be consistent with. Explain that a single image is insufficient. Give conservative guidance prioritising space. Return JSON matching the supplied schema.`
 // Stable multimodal generateContent models verified at https://ai.google.dev/gemini-api/docs/models on 2026-08-15.
 const supportedModels = [
   { id: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash' },
@@ -47,17 +40,18 @@ export default async function handler(request: Request) {
     const ai = new GoogleGenAI({ apiKey: key })
     const response = await ai.models.generateContent({
       model,
-      contents: [{ inlineData: { data, mimeType: image.type } }, { text: instruction }],
-      config: { responseMimeType: 'application/json', responseJsonSchema: z.toJSONSchema(schema) },
+      contents: [{ inlineData: { data, mimeType: image.type } }, { text: dogAnalysisInstruction }],
+      config: { responseMimeType: 'application/json', responseJsonSchema: z.toJSONSchema(dogAnalysisContentSchema) },
     })
-    const parsed = schema.safeParse(JSON.parse(response.text ?? '{}'))
-    if (!parsed.success || unsafe.some((rule) => rule.test(JSON.stringify(parsed.data)))) return Response.json({ error: 'unsafe_model_response' }, { status: 502 })
+    const parsed = dogAnalysisContentSchema.safeParse(JSON.parse(response.text ?? '{}'))
+    if (!parsed.success || hasUnsafeCertainty(parsed.data)) return Response.json({ error: 'unsafe_model_response' }, { status: 502 })
     return Response.json({ ...parsed.data, source: 'gemini' })
   } catch (error) {
     const errorCode = classifyGeminiError(error)
     const rawMessage = error && typeof error === 'object' && 'message' in error ? String(error.message) : ''
     const safeMessage = rawMessage.replace(/AIza[\w-]+/g, '[redacted]').slice(0, 500)
-    console.error(`[Gemini] ${errorCode}${safeMessage ? `: ${safeMessage}` : ''}`)
+    const messageSuffix = safeMessage ? `: ${safeMessage}` : ''
+    console.error(`[Gemini] ${errorCode}${messageSuffix}`)
     return Response.json({ error: errorCode }, { status: 502 })
   }
 }
