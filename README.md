@@ -28,8 +28,9 @@ Requirements: Node 20.19+, 22.13+, or 24+ and npm.
 1. Install dependencies with `npm install`.
 2. Copy `.env.example` to `.env.local`.
 3. Add a Gemini API key to `GEMINI_API_KEY` for live image analysis.
-4. Run the React UI with `npm run dev`.
-5. Use `vercel dev` when testing the UI and serverless function together.
+4. Run the React UI and local API with `npm run dev`.
+
+During development, Vite loads the server-only Gemini variables and mounts the same analysis handler at `/api/analyze-dog`. The key is never exposed to browser code.
 
 The labelled demo-photo experience works without a Gemini key. Real uploads show an honest retry state when the API is unavailable.
 

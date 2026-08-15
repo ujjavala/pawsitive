@@ -23,6 +23,7 @@ const still = [0, 0, 0]
 const cueConfig: Record<DogCue, CueConfig> = {
   'whole-body': { label: 'Watch the whole pattern', note: 'Body, face, movement, and context belong together.', bodyX: still, bodyY: [0, -2, 0], bodyRotate: [-1, 1, -1], headRotate: [-2, 3, -2], tailRotate: [-7, 10, -7], duration: 2.5, showPerson: false, showBark: false, showStress: false, showFocus: false, personX: still },
   'loose-stiff': { label: 'Loose movement and held stillness', note: 'Stiffness is a reason to add space—not proof of anger.', bodyX: still, bodyY: [0, -1, 0], bodyRotate: [0, .5, 0], headRotate: [0, 1, 0], tailRotate: [0, 2, 0], duration: 3.2, showPerson: false, showBark: false, showStress: false, showFocus: true, personX: still },
+  'sample-loose': { label: 'Relatively loose visible posture', note: 'The mouth is open and both ears are visible and raised.', bodyX: still, bodyY: [0, -3, 0], bodyRotate: [-1, 1, -1], headRotate: [-2, 3, -2], tailRotate: [-10, 13, -10], duration: 2.7, showPerson: false, showBark: false, showStress: false, showFocus: false, personX: still },
   tail: { label: 'A moving tail is one clue', note: 'Compare the tail with tension through the rest of the body.', bodyX: still, bodyY: still, bodyRotate: still, headRotate: still, tailRotate: [-24, 27, -24], duration: .65, showPerson: false, showBark: false, showStress: false, showFocus: false, personX: still },
   bark: { label: 'Sound needs context', note: 'Barking can accompany several different states.', bodyX: still, bodyY: still, bodyRotate: still, headRotate: [-3, 5, -3], tailRotate: still, duration: .8, showPerson: false, showBark: true, showStress: false, showFocus: false, personX: still },
   focus: { label: 'Focused and still', note: 'A fixed look shows attention, not a certain intention.', bodyX: still, bodyY: still, bodyRotate: still, headRotate: still, tailRotate: still, duration: 2, showPerson: true, showBark: false, showStress: false, showFocus: true, personX: still },
@@ -63,11 +64,28 @@ function CueDetails({ config, active }: Readonly<{ config: CueConfig; active: bo
   </>
 }
 
+function DogEars({ raised }: Readonly<{ raised: boolean }>) {
+  if (raised) return <>
+    <path d="M369 108 Q349 67 386 82 L397 107 Q384 119 369 108 Z" fill="#75442b" stroke="#5f3925" strokeWidth="5" strokeLinejoin="round"/>
+    <path d="M410 91 Q435 61 441 108 Q427 117 414 108 Z" fill="#8f5533" stroke="#5f3925" strokeWidth="5" strokeLinejoin="round"/>
+  </>
+  return <>
+    <path d="M371 105 Q343 75 344 111 Q345 139 373 145 Q386 129 371 105 Z" fill="#75442b" stroke="#5f3925" strokeWidth="5"/>
+    <path d="M405 89 Q424 65 437 92 Q440 106 429 118" fill="#8f5533" stroke="#5f3925" strokeWidth="5"/>
+  </>
+}
+
+function DogMouth({ open }: Readonly<{ open: boolean }>) {
+  if (open) return <><path d="M468 157 Q454 179 434 159 Q449 154 468 157 Z" fill="#4a2d22" stroke="#5f3925" strokeWidth="3"/><path d="M442 166 Q451 174 459 164" fill="none" stroke="#e98484" strokeWidth="4" strokeLinecap="round"/></>
+  return <path d="M471 157 Q457 169 437 160" fill="none" stroke="#5f3925" strokeWidth="4" strokeLinecap="round"/>
+}
+
 export function DogCueAnimation({ cue, compact = false }: Readonly<{ cue: DogCue; compact?: boolean }>) {
   const systemReduced = useReducedMotion()
   const appReduced = useAppStore((state) => state.reducedMotion)
   const active = !systemReduced && !appReduced
   const config = cueConfig[cue]
+  const isLooseSample = cue === 'sample-loose'
   const gradientId = useId().replaceAll(':', '')
   const blink = config.showFocus ? [1, 1, .25, 1] : [1, 1, .08, 1]
 
@@ -84,11 +102,10 @@ export function DogCueAnimation({ cue, compact = false }: Readonly<{ cue: DogCue
           <path d="M214 191 L207 226 Q207 235 219 235 L230 235 M260 199 L258 228 Q258 236 270 236 L281 236 M322 198 L330 228 Q332 236 344 235 L354 234 M354 184 L371 218 Q375 227 387 223 L396 219" fill="none" stroke="#6f4229" strokeWidth="18" strokeLinecap="round" strokeLinejoin="round"/>
           <motion.g animate={{ rotate: active ? config.headRotate : still }} transition={{ duration: config.duration, repeat: Infinity, ease: 'easeInOut' }} style={{ transformOrigin: '386px 139px' }}>
             <path d="M357 156 Q347 128 363 103 Q378 79 409 84 Q435 88 445 111 L450 139 Q430 168 392 174 Q370 174 357 156 Z" fill="#c9824b" stroke="#5f3925" strokeWidth="5"/>
-            <path d="M371 105 Q343 75 344 111 Q345 139 373 145 Q386 129 371 105 Z" fill="#75442b" stroke="#5f3925" strokeWidth="5"/>
-            <path d="M405 89 Q424 65 437 92 Q440 106 429 118" fill="#8f5533" stroke="#5f3925" strokeWidth="5"/>
+            <DogEars raised={isLooseSample}/>
             <path d="M431 124 Q459 121 474 141 Q480 157 459 167 Q435 175 414 160 Q410 140 431 124 Z" fill="#e8b47b"/>
             <motion.ellipse cx="411" cy="116" rx={config.showFocus ? 7 : 6} ry={config.showFocus ? 10 : 8} fill="#263238" animate={{ scaleY: active ? blink : 1, scale: active && config.showFocus ? [1, 1.16, 1] : 1 }} transition={{ duration: config.showFocus ? 1.5 : 4, repeat: Infinity }}/>
-            <circle cx="474" cy="145" r="9" fill="#263238"/><path d="M471 157 Q457 169 437 160" fill="none" stroke="#5f3925" strokeWidth="4" strokeLinecap="round"/>
+            <circle cx="474" cy="145" r="9" fill="#263238"/><DogMouth open={isLooseSample}/>
             <path d="M361 151 Q373 161 386 165" fill="none" stroke="#ffd84d" strokeWidth="8"/><circle cx="383" cy="164" r="7" fill="#ffd84d" stroke="#5f3925" strokeWidth="3"/>
             {config.showStress && <motion.path d="M445 164 Q455 182 465 164" fill="#ff7a83" stroke="#5f3925" strokeWidth="3" animate={{ scaleY: active ? [.15, 1, .15] : 1 }} transition={{ duration: 2.2, repeat: Infinity }}/>} 
           </motion.g>

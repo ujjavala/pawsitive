@@ -11,15 +11,19 @@ interface AppState {
   completedScenarios: string[]
   soundEnabled: boolean
   reducedMotion: boolean
+  aiAnalysisEnabled: boolean
+  geminiModel: string
   setOnboarding: (answers: OnboardingAnswers) => void
   completeLesson: (id: string) => void
   completeScenario: (id: string, correct: boolean) => void
   setSoundEnabled: (enabled: boolean) => void
   setReducedMotion: (enabled: boolean) => void
+  setAiAnalysisEnabled: (enabled: boolean) => void
+  setGeminiModel: (model: string) => void
   reset: () => void
 }
 
-const initial = { onboardingComplete: false, answers: null, confidence: 50, completedLessons: [], completedScenarios: [], soundEnabled: true, reducedMotion: false }
+const initial = { onboardingComplete: false, answers: null, confidence: 50, completedLessons: [], completedScenarios: [], soundEnabled: true, reducedMotion: false, aiAnalysisEnabled: true, geminiModel: 'gemini-3.5-flash-lite' }
 const clamp = (value: number) => Math.min(100, Math.max(0, value))
 
 export const useAppStore = create<AppState>()(persist((set) => ({
@@ -29,8 +33,10 @@ export const useAppStore = create<AppState>()(persist((set) => ({
   completeScenario: (id, correct) => set((state) => state.completedScenarios.includes(id) ? state : ({ completedScenarios: [...state.completedScenarios, id], confidence: correct ? clamp(state.confidence + 5) : state.confidence })),
   setSoundEnabled: (soundEnabled) => set({ soundEnabled }),
   setReducedMotion: (reducedMotion) => set({ reducedMotion }),
+  setAiAnalysisEnabled: (aiAnalysisEnabled) => set({ aiAnalysisEnabled }),
+  setGeminiModel: (geminiModel) => set({ geminiModel }),
   reset: () => set(initial),
-}), { name: 'pawsitive-progress', version: 1, storage: createJSONStorage(() => localStorage), partialize: (state) => ({ onboardingComplete: state.onboardingComplete, answers: state.answers, confidence: state.confidence, completedLessons: state.completedLessons, completedScenarios: state.completedScenarios, soundEnabled: state.soundEnabled, reducedMotion: state.reducedMotion }) }))
+}), { name: 'pawsitive-progress', version: 1, storage: createJSONStorage(() => localStorage), partialize: (state) => ({ onboardingComplete: state.onboardingComplete, answers: state.answers, confidence: state.confidence, completedLessons: state.completedLessons, completedScenarios: state.completedScenarios, soundEnabled: state.soundEnabled, reducedMotion: state.reducedMotion, aiAnalysisEnabled: state.aiAnalysisEnabled, geminiModel: state.geminiModel }) }))
 
 export const selectPersonLessons = () => lessons.filter((lesson) => lesson.perspective === 'person')
 export const selectOwnerLessons = () => lessons.filter((lesson) => lesson.perspective === 'owner')

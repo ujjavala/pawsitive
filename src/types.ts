@@ -1,6 +1,6 @@
 export type Perspective = 'person' | 'owner'
 export type PipMood = 'idle' | 'calm' | 'happy' | 'curious' | 'confused' | 'celebrating'
-export type DogCue = 'whole-body' | 'loose-stiff' | 'tail' | 'bark' | 'focus' | 'space' | 'choice' | 'passing' | 'approach' | 'leave' | 'excited' | 'stress' | 'consent'
+export type DogCue = 'whole-body' | 'loose-stiff' | 'sample-loose' | 'tail' | 'bark' | 'focus' | 'space' | 'choice' | 'passing' | 'approach' | 'leave' | 'excited' | 'stress' | 'consent'
 
 export interface QuizOption { id: string; label: string; teaching?: string }
 export interface ScenarioOption extends QuizOption { feedback: string }
