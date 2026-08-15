@@ -42,9 +42,10 @@ That became the idea behind the whole app:
 
 ## Demo
 
-**[Live Demo — add deployed URL here]**
+Github link: https://github.com/ujjavala/pawsitive
+Vercel deployment: https://pawsitive-nine.vercel.app/
 
-The experience begins by asking how comfortable you are around unfamiliar dogs. Someone who selects "Very nervous" isn't immediately thrown into a stressful scenario. They start by learning the basics, exploring relaxed and tense body language before gradually moving into realistic situations.
+The experience begins with three gentle onboarding questions: how comfortable you are around unfamiliar dogs, which situations feel most uncomfortable, and what you want to achieve. Someone who selects "Very nervous" isn't immediately thrown into a stressful scenario. They start by learning the basics, exploring relaxed and tense body language before gradually moving into realistic situations. Their answer also sets an initial confidence score, but it never locks content or forces them into an interaction.
 
 Then comes **What Would You Do?**
 
@@ -60,11 +61,13 @@ The entire experience is designed to be short enough to explore in a few minutes
 
 I wanted Pawsitive to feel like something you would actually want to use, rather than a clinical safety course.
 
-That led to a bright, playful interface, animated dog illustrations, gentle sounds, small celebrations, and a dog mascot named **Pip** who follows the user through the experience.
+That led to a bright, playful interface, an animated SVG dog, playful scenario scenes, gentle sounds, small celebrations, and a mascot named **Pip** who follows the user through the experience.
 
-The app is built with **React, TypeScript and Vite**, with **Tailwind CSS and shadcn/ui** for the interface, **Framer Motion** for animation, SVG illustrations for the dogs, and **Zustand with localStorage** for progress tracking.
+The app is built with **React, TypeScript and Vite**, with **Tailwind CSS and Radix UI primitives** for the interface, **Motion for React** (the current Framer Motion package) for animation, SVG illustrations for Pip, and **Zustand with localStorage** for progress tracking. **Zod** validates Gemini's structured response at runtime, while **Lucide** provides the icon system.
 
 There is deliberately no authentication or database in the MVP. You can open the app and start learning immediately.
+
+The weekend build includes **10 lessons for nervous users, six owner lessons, eight scenarios, eight body-language signals and five gentle achievements**. Routes are lazy-loaded so the non-critical learning, scenario and AI screens do not all have to load up front.
 
 ### Making Pip feel alive
 
@@ -72,7 +75,7 @@ Pip changes depending on what is happening. They can tilt their head during a qu
 
 The animations are deliberately gentle. There are no sudden dogs jumping towards the screen or unexpected barking, because an app designed for nervous dog lovers shouldn't accidentally make them nervous.
 
-The same thinking shaped the sound design. Most sounds are subtle feedback for interactions and achievements, while dog sounds only appear when they are genuinely useful for a lesson. Sound can also be disabled, and the experience respects reduced-motion preferences.
+The same thinking shaped the sound design. The current build uses short, synthesised feedback tones for correct answers, lesson completion and soft errors. I deliberately left barking and other dog sounds out of the learning flow so the app cannot unexpectedly startle someone. Sound can be disabled, and motion can be reduced from inside the app. Pip also respects the device's own reduced-motion preference.
 
 The goal is simple: **make the app feel alive without making it overwhelming.**
 
@@ -80,9 +83,9 @@ The goal is simple: **make the app feel alive without making it overwhelming.**
 
 The most interesting part of Pawsitive is **Understand This Dog**, where I wanted AI to do something more meaningful than power another generic chatbot.
 
-A user can upload a photo of a dog, and Gemini analyses the visible signals in the image. The response is structured into four parts:
+A user can upload a JPG, PNG or WebP photo of a dog, and Gemini analyses the visible signals in the image. The response is structured into five parts:
 
-**What we can see** — observable cues such as posture, ears, tail visibility and body position.
+**What we can see** — observable cues such as posture, ears, tail visibility and body position, each with a visual-confidence level.
 
 **What this might mean** — cautious interpretations of those signals.
 
@@ -90,21 +93,27 @@ A user can upload a photo of a dog, and Gemini analyses the visible signals in t
 
 **What you can do** — conservative guidance focused on giving unfamiliar dogs appropriate space.
 
+**Safety note** — an explicit reminder not to approach an unfamiliar dog based only on an image interpretation.
+
 That last part was especially important to me.
 
 I didn't want to build an AI-powered "Is this dog safe?" detector. A photograph cannot reliably tell you that a dog is safe, friendly, or won't bite.
 
 So the Gemini integration is deliberately designed to acknowledge uncertainty, using language such as "may indicate" and "can be consistent with" rather than making definitive claims.
 
+That safety work happens behind a server boundary rather than relying only on the interface. The browser sends the image to a same-origin **Vercel Function**, so the Gemini key is never exposed to client code. The function rejects unsupported files and images larger than 5 MB before calling Gemini, requests JSON matching a schema, validates the result with Zod, and rejects responses containing certainty claims such as "definitely friendly", "won't bite" or "safe to approach". The UI validates the response again before rendering it as cards, never as model-generated HTML.
+
+The AI feature also fails independently from the rest of the product. If live analysis is unavailable, the user sees a plain retry message and can continue learning. For challenge demos, there is a clearly labelled sample-photo experience with a seeded educational result; it never pretends to be a live result for a photo the user uploaded. Uploaded images are sent only after the user presses **Help me understand**, and Pawsitive does not add them to application storage.
+
 AI isn't the authority here. **It is the teacher.**
 
 ## The Learning Journey
 
-The content follows a simple progression:
+The product principle follows a simple progression:
 
 **Understand → Recognise → Respond → Build Confidence**
 
-Users first learn about relaxed and tense body language, tail movement, barking, staring, and why individual signals shouldn't be interpreted in isolation.
+The actual lesson content is organised into **Understanding Dogs**, **Meeting Dogs Safely**, and **Thoughtful Ownership** modules. Users first learn about relaxed and tense body language, tail movement, barking, staring, and why individual signals shouldn't be interpreted in isolation.
 
 They then move into realistic scenarios and make decisions for themselves.
 
@@ -113,6 +122,8 @@ If they get something wrong, Pawsitive doesn't throw a giant red **WRONG** scree
 That was intentional.
 
 Someone who is already nervous doesn't need another reason to feel like they're failing.
+
+Progress follows the same principle. Onboarding starts confidence at 20, 40, 50, 70 or 85 depending on the user's own answer. Completing a lesson or correctly answering a new scenario adds five points, while an incorrect answer has no penalty. Rewards are idempotent, so repeating an activity cannot inflate the score. The Progress screen keeps confidence separate from completion and explicitly describes it as a personal reflection, not a clinical measurement.
 
 ## 🐕 The Owner Perspective
 
@@ -127,6 +138,16 @@ The answer isn't to follow them and explain that the dog is friendly. It's simpl
 That captures what I wanted Pawsitive to teach:
 
 > **A safe interaction isn't just about understanding the dog. It's about understanding the human too.**
+
+The paired scenario is linked in both directions in the content model. Completing the person and owner sides unlocks the **Perspective Shift** achievement, making the product's central idea visible in the progress journey rather than leaving it as marketing copy.
+
+## Testing the Safety Net
+
+Because Pawsitive mixes educational content, stateful rewards and model output, I did not want the demo to depend only on a happy-path click-through.
+
+The project uses **Vitest and React Testing Library**. The current automated suite checks the required lesson, scenario, signal and achievement counts; unique IDs and answer keys; two-way scenario links; confidence clamping and one-time rewards; and the dog-analysis schema. It also contains regression cases for unsafe AI phrases including "definitely friendly", "won't bite", "you can approach this dog" and "safe to approach".
+
+Before submission, the strict TypeScript check, all **14 automated tests**, and the Vite production build pass.
 
 ## Why I Built It
 
@@ -156,7 +177,7 @@ That uncertainty is part of the feature, not a limitation hidden from the user.
 
 ## 🔮 Giving Pip a Voice with ElevenLabs
 
-The next piece I would love to add is a voice for Pip using **ElevenLabs**.
+The next piece I would love to add is a voice for Pip using **ElevenLabs**. ElevenLabs is **not part of the current weekend build**; this is a deliberate next step rather than a shipped integration.
 
 Right now, Pip is the animated companion reacting to the user's progress. With voice, Pip could become part of the learning journey itself.
 
@@ -180,13 +201,17 @@ That brings together three pieces of the experience:
 
 **ElevenLabs** gives Pip a natural voice.
 
-**Framer Motion** brings Pip to life.
+**Motion for React** brings Pip to life.
 
 Together, they could turn Pip from an animated mascot into a genuine **dog-confidence companion**.
+
+I would keep that integration server-side, accept only a small set of approved narration IDs, and cache generated clips. That would protect the API key, control cost and prevent arbitrary text from turning the feature into an open text-to-speech proxy. Narration would remain user-initiated, optional and accompanied by the same visible text.
 
 ## What's Next?
 
 There are plenty of directions Pawsitive could take, but the core idea would stay the same: gradually move people from illustrations to photographs, videos and increasingly realistic scenarios as their confidence grows.
+
+I also considered **Snowflake**, but deliberately did not add it to the weekend MVP simply to increase the technology count. Pawsitive does not need a warehouse to teach a lesson or remember local progress. A future opt-in analytics layer could send anonymous events such as lesson completion, perspective switching, Gemini request success and labelled-demo usage to Snowflake—never uploaded photos, model response text or personal details. For now, keeping that out made the privacy story and the architecture simpler.
 
 For dog owners, there could eventually be more personalised guidance around their individual dogs and situations.
 
