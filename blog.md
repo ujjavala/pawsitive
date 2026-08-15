@@ -150,6 +150,14 @@ When the server reports that no `GEMINI_API_KEY` is configured, Pawsitive checks
 
 The on-device session receives the same cautious system instruction as server Gemini, accepts the selected photo as an image `Blob`, and returns JSON constrained by the same schema. Its output passes through the same Zod validation and certainty checks before anything is displayed. The session is destroyed after analysis to release browser resources, and successful results are clearly labelled **analysed privately on this device**.
 
+### What amazed me about the private mode
+
+This became one of the most surprising parts of the whole project. I expected the private on-device mode to be a useful fallback, but I did not expect Gemini Nano to perform this well. In my testing, its observations and cautious interpretations were often remarkably close to the results produced through the API-key-powered server models.
+
+That feels like a small glimpse of how quickly AI is advancing: a browser can now examine an image, follow a detailed instruction, produce structured output and respect the same safety constraints—all without an API key and without sending the photo to a server. The privacy benefit is not achieved by giving up the core experience; the result remains genuinely useful.
+
+There are still differences between devices and models, so I would not call the two paths identical or treat my experiments as a formal benchmark. Even so, seeing capable multimodal AI run privately inside Chrome was a real **wow moment** for me. Gemini Nano started as a fallback and ended up feeling like one of Pawsitive's most exciting features—and a sign of the possibilities that on-device AI is beginning to unlock.
+
 The fallback order is:
 
 1. Use server Gemini when `GEMINI_API_KEY` is configured.
@@ -166,6 +174,11 @@ Chrome's foundation-model APIs are a progressive enhancement rather than univers
 - **Compute:** Strictly more than 4 GB GPU VRAM, or at least 16 GB system RAM and four CPU cores for CPU execution.
 - **Network:** An unmetered connection for the initial browser-managed model download. Subsequent inference can run without a network connection.
 - **User activation:** The first download must be started after a meaningful user interaction, which Pawsitive provides through the **Help me understand** button.
+
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/h83r85dxi3bhnqdapmrz.png)
+
+
 
 For local testing, enable `chrome://flags/#optimization-guide-on-device-model` and `chrome://flags/#prompt-api-for-gemini-nano`, then fully relaunch Chrome. Download and model errors can be inspected at `chrome://on-device-internals`. After the initial download, Chrome states that inference is local and no prompt or image data is sent to Google or another third party.
 
