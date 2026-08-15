@@ -1,11 +1,127 @@
 import type { Achievement, Lesson, Scenario, Signal } from '../types'
 
-const choices = (correct: string) => [
-  { id: 'a', label: correct === 'a' ? 'Stay calm and create comfortable space' : 'Move quickly toward the dog' },
-  { id: 'b', label: correct === 'b' ? 'Stay calm and create comfortable space' : 'Run or shout' },
-  { id: 'c', label: correct === 'c' ? 'Stay calm and create comfortable space' : 'Reach over the dog’s head' },
-  { id: 'd', label: correct === 'd' ? 'Stay calm and create comfortable space' : 'Stare directly at the dog' },
-]
+const personLessonGuidance: Record<string, Pick<Lesson, 'cue' | 'what' | 'why' | 'how' | 'takeaway' | 'options' | 'answer'>> = {
+  'dogs-communicate': {
+    cue: 'whole-body',
+    what: 'Notice the dog’s posture, movement, face, and surroundings together rather than searching for one “good” or “bad” sign.',
+    why: 'One signal can have several explanations. Looking for a pattern reduces guesswork and helps you respond without labelling the dog.',
+    how: 'Pause at a comfortable distance and name three things you can actually observe before deciding what action gives everyone more room.',
+    takeaway: 'Observe first. Interpret cautiously. Choose space when the picture is unclear.', answer: 'b',
+    options: [
+      { id: 'a', label: 'Decide from the tail alone', teaching: 'A tail shows activity or arousal, but not a complete emotional state or a promise of safe behaviour.' },
+      { id: 'b', label: 'Combine body, movement, and context', teaching: 'Several observable clues give a more useful picture while still leaving room for uncertainty.' },
+      { id: 'c', label: 'Assume quiet means comfortable', teaching: 'A quiet dog may still be tense, still, tired, focused, or uncomfortable; sound is only one clue.' },
+    ],
+  },
+  'relaxed-vs-tense': {
+    cue: 'loose-stiff',
+    what: 'Compare fluid, changeable movement with stiffness, held posture, or suddenly reduced movement.',
+    why: 'Tension can be consistent with uncertainty or a need for space. You do not need to diagnose the feeling to respond thoughtfully.',
+    how: 'Look from the nose to the tail, then check whether the dog’s movement stays loose or becomes still as distance changes.',
+    takeaway: 'Loose and stiff are useful observations—not guarantees about what happens next.', answer: 'c',
+    options: [
+      { id: 'a', label: 'Approach the still dog to reassure it', teaching: 'Moving closer can add pressure when stillness may already indicate that more room would help.' },
+      { id: 'b', label: 'Treat loose movement as a guarantee', teaching: 'Loose movement can be reassuring context, but no posture guarantees how an unfamiliar dog will respond.' },
+      { id: 'c', label: 'Notice tension and maintain space', teaching: 'Distance lets you keep observing without asking the dog or yourself to handle a closer interaction.' },
+    ],
+  },
+  'wagging-tail': {
+    cue: 'tail',
+    what: 'Look at tail height and speed, then check whether the rest of the body is loose, stiff, forward, or moving away.',
+    why: 'A wag reflects arousal or engagement, which can occur in many emotional states. “Wagging” does not automatically mean “come closer.”',
+    how: 'Mentally replace “happy tail” with a neutral description: high and fast, low and broad, or moving while the body stays stiff.',
+    takeaway: 'Read the wag as one clue inside the whole-body pattern.', answer: 'a',
+    options: [
+      { id: 'a', label: 'Check the whole body before responding', teaching: 'Tail movement becomes more meaningful when considered with posture, movement, distance, and context.' },
+      { id: 'b', label: 'Reach out whenever the tail moves', teaching: 'A wag is not consent to touch and cannot establish that an unfamiliar dog is safe to approach.' },
+      { id: 'c', label: 'Judge friendliness by wag speed', teaching: 'Speed may reflect higher arousal, not a simple scale from unfriendly to friendly.' },
+    ],
+  },
+  barking: {
+    cue: 'bark',
+    what: 'Notice where the dog is, what barrier or distance exists, how its body moves, and what happened immediately before the barking.',
+    why: 'Barking can occur with alarm, excitement, frustration, attention-seeking, or other states. The sound alone cannot tell you which.',
+    how: 'Keep moving calmly when safe, avoid investigating the dog’s space, and let distance end the encounter.',
+    takeaway: 'You do not need to decode every bark to choose a calm, spacious response.', answer: 'c',
+    options: [
+      { id: 'a', label: 'Move closer to find out why it is barking', teaching: 'Approaching can increase pressure and is unnecessary when the cause is uncertain.' },
+      { id: 'b', label: 'Shout so the dog knows you are in charge', teaching: 'Adding more noise can increase arousal and does not make the interaction more predictable.' },
+      { id: 'c', label: 'Keep distance and continue calmly', teaching: 'This avoids adding attention or proximity while allowing the moment to pass.' },
+    ],
+  },
+  staring: {
+    cue: 'focus',
+    what: 'Notice the duration of the look, body stillness, distance, and whether the dog can turn or move away.',
+    why: 'A fixed look may show focused attention, but it cannot by itself reveal intent. Staring back can add social pressure.',
+    how: 'Soften your gaze, angle your body away, and create distance without sudden movement.',
+    takeaway: 'Focused attention is a cue to make room, not a reason to test the dog.', answer: 'b',
+    options: [
+      { id: 'a', label: 'Hold eye contact until the dog looks away', teaching: 'Sustained direct eye contact may increase pressure and keeps you engaged in an unnecessary interaction.' },
+      { id: 'b', label: 'Look away softly and create space', teaching: 'Reducing eye contact and proximity can make the moment less direct and easier to leave.' },
+      { id: 'c', label: 'Walk straight toward the owner', teaching: 'Closing distance while the dog is focused removes room for both the dog and owner to adjust.' },
+    ],
+  },
+  'needs-space': {
+    cue: 'space',
+    what: 'Look for a cluster: turning away, lip licking, shifting weight back, lowering posture, or trying to increase distance.',
+    why: 'These signals can occur for different reasons, but together they may indicate that continued approach is adding pressure.',
+    how: 'Stop advancing, turn slightly away, and leave a clear route so the dog can move without passing closer to you.',
+    takeaway: 'Respecting a request for space does not require certainty about the dog’s emotion.', answer: 'a',
+    options: [
+      { id: 'a', label: 'Pause and give the dog an exit route', teaching: 'Removing pressure and preserving a route away supports a calmer outcome without forcing contact.' },
+      { id: 'b', label: 'Follow when the dog turns away', teaching: 'Following removes the distance the dog appears to be creating and may increase pressure.' },
+      { id: 'c', label: 'Offer food from your hand', teaching: 'Food does not make close contact necessary or safe, and reaching still enters the dog’s space.' },
+    ],
+  },
+  'should-approach': {
+    cue: 'choice',
+    what: 'Check the available space, lead control, owner attention, the dog’s whole body, and—equally importantly—your own comfort.',
+    why: 'A calm appearance or friendly owner cannot guarantee an interaction. Greeting an unfamiliar dog is always optional.',
+    how: 'Choose to pass at a distance. If you want to interact, wait for a clear invitation and keep your right to decline.',
+    takeaway: 'Not approaching is a complete and considerate choice.', answer: 'c',
+    options: [
+      { id: 'a', label: 'Approach because the dog looks calm', teaching: 'A brief appearance cannot guarantee comfort or future behaviour, and you do not need to test it.' },
+      { id: 'b', label: 'Wait nearby until the dog comes over', teaching: 'Waiting close can still create pressure and leaves the interaction less controlled.' },
+      { id: 'c', label: 'Let them pass if you prefer not to greet', teaching: 'This respects your comfort and gives the owner and dog room to continue normally.' },
+    ],
+  },
+  'owner-guides': {
+    cue: 'choice',
+    what: 'Notice whether the owner has the dog close, whether the dog can remain settled, and whether you genuinely want the interaction.',
+    why: 'The owner can manage their dog, but only you can set your boundary. A polite invitation does not create an obligation.',
+    how: 'Use a short response such as “No thanks, I need some space,” then move to a comfortable distance.',
+    takeaway: 'Clear words help a considerate owner support your boundary.', answer: 'b',
+    options: [
+      { id: 'a', label: 'Say yes to avoid disappointing the owner', teaching: 'Agreeing out of pressure can leave you tense and turn an optional greeting into an uncomfortable one.' },
+      { id: 'b', label: 'State your boundary clearly and politely', teaching: 'A direct request gives the owner useful information and makes the safer next action obvious.' },
+      { id: 'c', label: 'Say nothing and reach for the dog', teaching: 'Reaching begins the interaction without confirming that you, the owner, and the dog are ready.' },
+    ],
+  },
+  'dog-approaches': {
+    cue: 'approach',
+    what: 'Scan for a safe place to step aside, the length of the lead, the owner’s position, and the dog’s speed and direction.',
+    why: 'Planning your movement early is easier than reacting once the dog is very close.',
+    how: 'Move aside without rushing, keep your hands to yourself, and allow the owner to guide the dog past.',
+    takeaway: 'Early, calm distance makes a passing encounter more predictable.', answer: 'a',
+    options: [
+      { id: 'a', label: 'Step aside early and let the owner pass', teaching: 'An early adjustment creates room before the encounter feels crowded or urgent.' },
+      { id: 'b', label: 'Wait until the dog is beside you, then jump away', teaching: 'A late sudden movement can startle you, surprise the dog, and leave the owner little time to respond.' },
+      { id: 'c', label: 'Stand across the path to stop them', teaching: 'Blocking the route reduces passing space and makes the encounter last longer.' },
+    ],
+  },
+  'walk-away': {
+    cue: 'leave',
+    what: 'Notice your own rising tension, the nearest clear route, changes in the dog’s movement, and whether the owner has control.',
+    why: 'You do not need proof that a dog is dangerous before choosing distance. Your comfort is enough reason to leave.',
+    how: 'Move away steadily toward an open, populated, or protected space; seek local help if there is immediate danger.',
+    takeaway: 'Walking away is a practical boundary, not a failed interaction.', answer: 'c',
+    options: [
+      { id: 'a', label: 'Stay because leaving might look rude', teaching: 'Social politeness is less important than maintaining a distance where you can think and move calmly.' },
+      { id: 'b', label: 'Wait until you know exactly how the dog feels', teaching: 'Emotional certainty is impossible from a brief encounter and is not required before you leave.' },
+      { id: 'c', label: 'Use a clear route and move away calmly', teaching: 'A steady exit increases distance without adding sudden movement or unnecessary interaction.' },
+    ],
+  },
+}
 
 const personLessons: Lesson[] = [
   ['dogs-communicate', 'Understanding Dogs', 'Dogs communicate differently', 'Start with the whole picture—not one clue.', 'You notice a dog using its body, face, movement and sound.', ['Body position', 'Movement', 'Face and ears', 'The surrounding context'], 'No single sign tells the full story. Signals can have different meanings in different moments.', 'Pause, notice several cues, and keep an appropriate distance.', 'Looking at several signals and the context gives you more useful information.'],
@@ -18,27 +134,208 @@ const personLessons: Lesson[] = [
   ['owner-guides', 'Meeting Dogs Safely', 'Let the owner guide the interaction', 'Boundaries work both ways.', 'An owner asks whether you would like to say hello.', ['Dog’s movement', 'Lead control', 'Your comfort level'], 'An introduction should only happen when both people are comfortable and the dog is managed.', 'It is okay to say “No thanks, I need some space.”', 'A clear boundary is a safe and considerate response.'],
   ['dog-approaches', 'Meeting Dogs Safely', 'When a dog approaches', 'Stay steady and make room.', 'A leashed dog and owner are approaching on a footpath.', ['Available passing space', 'Owner’s position', 'Dog’s speed and body'], 'The owner may be preparing to pass, but you do not need to interact.', 'Move aside if safe, keep movements calm, and let the owner manage the dog.', 'Space makes the interaction more predictable for everyone.'],
   ['walk-away', 'Meeting Dogs Safely', 'When to walk away', 'Leaving is a valid choice.', 'The situation feels too close or unpredictable for you.', ['Your comfort', 'An open route away', 'Changes in the dog’s movement'], 'You do not need certainty about the dog to decide that you want more distance.', 'Move away calmly using a safe route and seek local help if there is immediate danger.', 'Choosing distance is not failure—it is a practical boundary.'],
-].map(([id, module, title, description, situation, observations, meaning, action, explanation]) => ({ id: String(id), perspective: 'person', module: String(module), title: String(title), description: String(description), durationMinutes: 2, situation: String(situation), observations: observations as string[], meaning: String(meaning), action: String(action), options: choices('c'), answer: 'c', explanation: String(explanation) }))
+].map(([id, module, title, description, situation, observations, meaning, action, explanation]) => ({ id: String(id), perspective: 'person', module: String(module), title: String(title), description: String(description), durationMinutes: 3, situation: String(situation), observations: observations as string[], meaning: String(meaning), action: String(action), explanation: String(explanation), ...personLessonGuidance[String(id)] }))
 
-const ownerSeed = [
-  ['friendly-not-approachable', 'Friendly does not always mean approachable', 'A stranger cannot know your dog as you do.'],
-  ['give-space', 'Give nervous people space', 'Distance can make a shared path feel safer.'],
-  ['optional-hello', 'Do not assume everyone wants to say hello', 'A greeting is an invitation, never an obligation.'],
-  ['control-movement', 'Keep control of your dog’s movement', 'Prevent rushing, jumping, and blocked pathways.'],
-  ['stress-signals', 'Learn your dog’s stress signals', 'Notice patterns and respond before pressure builds.'],
-  ['optional-introductions', 'Make introductions optional', 'A considerate “no problem” supports clear boundaries.'],
+const ownerLessons: Lesson[] = [
+  {
+    id: 'owner-friendly-not-approachable', perspective: 'owner', module: 'Thoughtful Ownership', durationMinutes: 3,
+    cue: 'whole-body',
+    title: 'Friendly does not always mean approachable', description: 'A stranger cannot know your dog as you do.',
+    situation: 'Your dog is relaxed, but a person ahead slows down and watches your dog carefully.',
+    what: 'Notice the person’s pace, route, gaze, and distance—not only your dog’s familiar behaviour.',
+    why: 'You have history with your dog; a stranger has only a few seconds of incomplete information. Reassurance cannot replace physical space.',
+    how: 'Keep your dog close, leave a clear passing route, and allow the person to decide whether any interaction happens.',
+    takeaway: '“Friendly” describes your experience; “approachable” requires consent in this moment.',
+    observations: ['The person slowing or changing route', 'Your dog’s distance from them', 'Lead length and available passing room'],
+    meaning: 'The person may be uncertain even when your dog appears relaxed. Their boundary does not need to be justified.',
+    action: 'Create room without following them or trying to persuade them.', answer: 'b',
+    options: [
+      { id: 'a', label: 'Call out, “Don’t worry, she’s friendly!”', teaching: 'Reassurance asks the person to trust information they cannot verify and does not restore distance.' },
+      { id: 'b', label: 'Bring your dog closer and make room', teaching: 'Visible control and physical space communicate consideration without requiring conversation.' },
+      { id: 'c', label: 'Let your dog prove friendliness by greeting', teaching: 'An approach removes the choice from the person and may increase excitement for your dog.' },
+    ],
+    explanation: 'The most useful reassurance is predictable movement and enough room to pass.',
+  },
+  {
+    id: 'owner-give-space', perspective: 'owner', module: 'Thoughtful Ownership', durationMinutes: 3,
+    cue: 'passing',
+    title: 'Give nervous people space', description: 'Distance can make a shared path feel safer.',
+    situation: 'On a narrow path, someone steps to the edge as you and your dog approach.',
+    what: 'Treat stepping aside, stopping, turning away, or crossing over as possible requests for more room.',
+    why: 'Distance lowers social pressure for the person and can also help your dog practise calm passing instead of pulling toward strangers.',
+    how: 'Shorten the lead without tightening it sharply, position yourself between dog and person when practical, and pass steadily.',
+    takeaway: 'Space is an action you can offer before anyone has to ask.',
+    observations: ['Width of the path', 'The person’s attempt to increase distance', 'Your dog’s speed and lead position'],
+    meaning: 'Their movement communicates a useful boundary, whether it comes from fear, preference, culture, or another reason.',
+    action: 'Slow down, keep your dog on the far side, and maximise the passing gap.', answer: 'a',
+    options: [
+      { id: 'a', label: 'Move your dog to the far side and pass calmly', teaching: 'Your body becomes a buffer and the person receives the room they are requesting.' },
+      { id: 'b', label: 'Keep the full lead length because your dog is calm', teaching: 'A long lead still allows unexpected movement into the person’s space.' },
+      { id: 'c', label: 'Stop beside the person to let them meet', teaching: 'Stopping prolongs the close encounter and assumes they want contact.' },
+    ],
+    explanation: 'A controlled, spacious pass is easier for the person, your dog, and you.',
+  },
+  {
+    id: 'owner-optional-hello', perspective: 'owner', module: 'Thoughtful Ownership', durationMinutes: 3,
+    cue: 'choice',
+    title: 'Do not assume everyone wants to say hello', description: 'A greeting is an invitation, never an obligation.',
+    situation: 'Your dog looks toward a nearby person, but the person keeps their hands close and does not approach.',
+    what: 'Look for active consent rather than the absence of a “no”: relaxed engagement, a verbal request, and room for either party to leave.',
+    why: 'People may freeze, feel socially pressured, or simply prefer not to interact. Your dog also benefits from learning that not every person is a greeting opportunity.',
+    how: 'Continue past unless the person clearly asks and you believe your dog can participate calmly. Make declining easy.',
+    takeaway: 'No invitation means no greeting—and that is a normal outcome.',
+    observations: ['Whether the person actively asks', 'Hands and body staying withdrawn', 'Your dog’s ability to disengage'],
+    meaning: 'Neutral presence is not consent to contact. Optional greetings protect both human and canine boundaries.',
+    action: 'Guide your dog onward and reward calm attention back toward you.', answer: 'c',
+    options: [
+      { id: 'a', label: 'Ask repeatedly until the person answers', teaching: 'Repeated requests increase social pressure and make “no” harder to express.' },
+      { id: 'b', label: 'Let the dog approach unless they object', teaching: 'This makes the person stop an interaction that you could have prevented.' },
+      { id: 'c', label: 'Continue unless there is a clear invitation', teaching: 'This keeps greeting optional and teaches your dog that passing calmly is routine.' },
+    ],
+    explanation: 'Consent should be clear, voluntary, and easy to withdraw before and during a greeting.',
+  },
+  {
+    id: 'owner-control-movement', perspective: 'owner', module: 'Thoughtful Ownership', durationMinutes: 3,
+    cue: 'excited',
+    title: 'Keep control of your dog’s movement', description: 'Prevent rushing, jumping, and blocked pathways.',
+    situation: 'Your excited dog pulls toward someone entering a shared lift lobby.',
+    what: 'Notice lead length, doorways, escape routes, your dog’s arousal, and whether another person could pass without coming closer.',
+    why: 'Even playful movement can feel threatening when it is fast, close, or blocks an exit. Intent matters less than the experience created.',
+    how: 'Increase distance early, use trained cues, and wait for a less crowded moment rather than relying on the stranger to manage your dog.',
+    takeaway: 'Control means preventing unwanted proximity, not explaining it afterward.',
+    observations: ['Acceleration or pulling', 'Constrained doors and corners', 'Whether people have a clear route'],
+    meaning: 'Excitement can make movement less predictable and reduce everyone’s ability to choose distance.',
+    action: 'Move away from the bottleneck, shorten the lead appropriately, and regain calm before proceeding.', answer: 'b',
+    options: [
+      { id: 'a', label: 'Hold the lead long so the dog can investigate', teaching: 'More lead in a confined space lets the dog close distance before others can respond.' },
+      { id: 'b', label: 'Move out of the bottleneck and regain focus', teaching: 'Changing the environment early prevents rushing and gives everyone a usable path.' },
+      { id: 'c', label: 'Tell the person to stand still', teaching: 'The owner is responsible for managing the dog; the stranger should not have to manage the encounter.' },
+    ],
+    explanation: 'Early positioning is safer and kinder than trying to control an excited greeting at close range.',
+  },
+  {
+    id: 'owner-stress-signals', perspective: 'owner', module: 'Thoughtful Ownership', durationMinutes: 3,
+    cue: 'stress',
+    title: 'Learn your dog’s stress signals', description: 'Notice patterns and respond before pressure builds.',
+    situation: 'During a busy outing, your dog begins turning away, lip licking, and scanning instead of taking treats.',
+    what: 'Learn your dog’s baseline and notice clusters or changes: reduced responsiveness, tension, avoidance, panting, scanning, or attempts to leave.',
+    why: 'Responding to early changes can prevent escalation and keeps your dog from having to communicate discomfort more dramatically.',
+    how: 'Increase distance, lower the difficulty, and record what happened before and after so patterns become easier to recognise over time.',
+    takeaway: 'Support the early whisper so your dog does not need to shout.',
+    observations: ['Changes from your dog’s normal behaviour', 'Several signals occurring together', 'Triggers, distance, and recovery time'],
+    meaning: 'The cluster may be consistent with rising stress or overload, although individual signals can have other causes.',
+    action: 'Leave the busy area, offer decompression, and seek qualified professional help for persistent concerns.', answer: 'a',
+    options: [
+      { id: 'a', label: 'Create distance and reduce the demands', teaching: 'A lower-pressure environment can help your dog recover before stress builds further.' },
+      { id: 'b', label: 'Keep going so the dog gets used to it', teaching: 'Continuing while stress rises may create sensitisation rather than comfortable learning.' },
+      { id: 'c', label: 'Correct each stress signal', teaching: 'Suppressing communication does not resolve the underlying discomfort and removes useful warnings.' },
+    ],
+    explanation: 'Behaviour change is information. Adjust the situation rather than punishing the signal.',
+  },
+  {
+    id: 'owner-optional-introductions', perspective: 'owner', module: 'Thoughtful Ownership', durationMinutes: 3,
+    cue: 'consent',
+    title: 'Make introductions optional', description: 'A considerate “no problem” supports clear boundaries.',
+    situation: 'A person first agrees to greet your dog, then hesitates and steps back as your dog comes closer.',
+    what: 'Keep watching after the first “yes.” Consent can change through words, freezing, leaning away, withdrawing a hand, or stepping back.',
+    why: 'A greeting is a process, not a contract. Making it easy to stop protects trust and prevents either participant from feeling trapped.',
+    how: 'Cheerfully call your dog away, restore distance, and continue without asking the person to explain or try again.',
+    takeaway: 'The best introduction is one that anyone can end immediately.',
+    observations: ['A change in the person’s movement', 'Your dog closing distance', 'Whether both can disengage easily'],
+    meaning: 'Initial consent has been withdrawn or become uncertain; the appropriate response is to pause the interaction.',
+    action: 'Move your dog away and say, “No problem—we’ll give you space.”', answer: 'c',
+    options: [
+      { id: 'a', label: 'Encourage one quick pat before stopping', teaching: 'A previous yes does not override current hesitation, even for a brief interaction.' },
+      { id: 'b', label: 'Ask why they changed their mind', teaching: 'Requiring an explanation can add pressure when the useful action is simply to create space.' },
+      { id: 'c', label: 'Call your dog away and accept the change', teaching: 'A calm exit makes withdrawing consent safe, ordinary, and free from embarrassment.' },
+    ],
+    explanation: 'Respecting a changed mind keeps the interaction genuinely voluntary.',
+  },
 ]
-export const lessons: Lesson[] = [...personLessons, ...ownerSeed.map(([id, title, description]) => ({ id: `owner-${id}`, perspective: 'owner' as const, module: 'Thoughtful Ownership', title, description, durationMinutes: 2, situation: 'You and your dog are sharing a public space with someone who may be uncomfortable.', observations: ['The person’s movement and distance', 'Your dog’s position', 'Available space'], meaning: 'People communicate boundaries through movement as well as words. Your dog may also benefit from less pressure.', action: 'Shorten the lead when appropriate, create space, and make interaction optional.', options: choices('b'), answer: 'b', explanation: 'Giving space respects the person and helps you keep the situation calm and controlled.' }))]
+
+export const lessons: Lesson[] = [...personLessons, ...ownerLessons]
 
 export const scenarios: Scenario[] = [
-  { id: 'footpath-person', perspective: 'person', title: 'Meeting on a footpath', description: 'A dog is walking toward you with its owner.', difficulty: 'Beginner', options: choices('c'), answer: 'c', explanation: 'A comfortable distance gives both you and the owner room to manage the passing interaction.', pairedScenarioId: 'footpath-owner' },
-  { id: 'footpath-owner', perspective: 'owner', title: 'Someone moves away', description: 'You notice someone creating distance from your dog.', difficulty: 'Beginner', options: choices('b'), answer: 'b', explanation: 'Shortening the lead and creating space respects their boundary.', pairedScenarioId: 'footpath-person' },
-  { id: 'fence-bark', perspective: 'person', title: 'Barking behind a fence', description: 'A dog starts barking as you walk past a garden.', difficulty: 'Beginner', options: choices('c'), answer: 'c', explanation: 'Continue calmly and avoid approaching or staring at the dog.' },
-  { id: 'loose-dog', perspective: 'person', title: 'A loose dog approaches', description: 'An unfamiliar dog without an owner in sight is coming closer.', difficulty: 'Intermediate', options: choices('c'), answer: 'c', explanation: 'Avoid sudden movement, give yourself space, and look for a safe route or the owner.', safetyNote: 'If you believe there is immediate danger, move to safety and contact the appropriate local service.' },
-  { id: 'jumping', perspective: 'person', title: 'A dog begins jumping', description: 'A leashed dog pulls toward you and jumps.', difficulty: 'Intermediate', options: choices('c'), answer: 'c', explanation: 'Create distance and ask the owner to keep the dog close. You do not need to interact.' },
-  { id: 'asked-to-pet', perspective: 'person', title: 'Asked to say hello', description: 'An owner asks whether you want to pet their dog.', difficulty: 'Beginner', options: choices('c'), answer: 'c', explanation: 'It is always okay to decline and request space.' },
-  { id: 'cross-road-owner', perspective: 'owner', title: 'Someone crosses the road', description: 'A person sees your dog and immediately crosses away.', difficulty: 'Beginner', options: choices('b'), answer: 'b', explanation: 'Continue calmly and give them space rather than following or questioning them.' },
-  { id: 'busy-path-owner', perspective: 'owner', title: 'A narrow, busy path', description: 'Your dog is excited as several people approach.', difficulty: 'Intermediate', options: choices('b'), answer: 'b', explanation: 'Create room, keep control of movement, and let people pass without a greeting.' },
+  {
+    id: 'footpath-person', perspective: 'person', cue: 'approach', title: 'Meeting on a footpath', description: 'A dog is walking toward you with its owner.', difficulty: 'Beginner', answer: 'c', pairedScenarioId: 'footpath-owner',
+    options: [
+      { id: 'a', label: 'Walk closer so you can pass quickly', feedback: 'Moving closer reduces everyone’s room to respond and may make the encounter feel more intense.' },
+      { id: 'b', label: 'Stop in the middle of the path and stare', feedback: 'Blocking the path and staring can add pressure while leaving the owner less room to guide the dog past.' },
+      { id: 'c', label: 'Move aside if safe and continue calmly', feedback: 'A comfortable distance gives both you and the owner room to manage the passing interaction.' },
+      { id: 'd', label: 'Reach toward the dog as it passes', feedback: 'Reaching turns a simple pass into an unwanted interaction and brings your hand closer to an unfamiliar dog.' },
+    ],
+    explanation: 'A comfortable distance gives both you and the owner room to manage the passing interaction.',
+  },
+  {
+    id: 'footpath-owner', perspective: 'owner', cue: 'space', title: 'Someone moves away', description: 'You notice someone creating distance from your dog.', difficulty: 'Beginner', answer: 'b', pairedScenarioId: 'footpath-person',
+    options: [
+      { id: 'a', label: 'Call out that your dog is friendly', feedback: 'Reassurance does not restore the distance they are asking for, and they cannot verify your dog’s behaviour for themselves.' },
+      { id: 'b', label: 'Shorten the lead and create more space', feedback: 'Keeping your dog close and making room respects the person’s boundary without requiring an explanation.' },
+      { id: 'c', label: 'Let your dog approach for a quick hello', feedback: 'An approach removes the space the person is deliberately creating and may increase fear for them and excitement for your dog.' },
+      { id: 'd', label: 'Follow them so you can reassure them', feedback: 'Following can make the person feel pursued and prolong an encounter they are trying to leave.' },
+    ],
+    explanation: 'Shortening the lead and creating space respects their boundary.',
+  },
+  {
+    id: 'fence-bark', perspective: 'person', cue: 'bark', title: 'Barking behind a fence', description: 'A dog starts barking as you walk past a garden.', difficulty: 'Beginner', answer: 'd',
+    options: [
+      { id: 'a', label: 'Stop and look over the fence', feedback: 'Stopping keeps you near the trigger, while looking into the dog’s space may sustain or intensify the barking.' },
+      { id: 'b', label: 'Run past as fast as possible', feedback: 'Sudden fast movement can increase excitement and also makes it easier for you to trip or lose awareness of your surroundings.' },
+      { id: 'c', label: 'Put your hand near the fence to say hello', feedback: 'A barrier does not make reaching toward an unfamiliar dog safe; gaps may still allow contact.' },
+      { id: 'd', label: 'Keep your distance and walk past calmly', feedback: 'Continuing calmly ends the encounter without approaching, staring at, or interacting with the dog.' },
+    ],
+    explanation: 'Continue calmly and avoid approaching or staring at the dog.',
+  },
+  {
+    id: 'loose-dog', perspective: 'person', cue: 'focus', title: 'A loose dog approaches', description: 'An unfamiliar dog without an owner in sight is coming closer.', difficulty: 'Intermediate', answer: 'b', safetyNote: 'If you believe there is immediate danger, move to safety and contact the appropriate local service.',
+    options: [
+      { id: 'a', label: 'Turn and run immediately', feedback: 'Running can reduce your awareness, increase the chance of falling, and may encourage the dog to follow the movement.' },
+      { id: 'b', label: 'Stay calm, angle away, and find a safe route', feedback: 'Avoiding sudden movement while creating distance gives you time to move toward a barrier, exit, or other safe place.' },
+      { id: 'c', label: 'Reach out so the dog can sniff your hand', feedback: 'Offering your hand moves it closer to an unknown dog and creates an interaction you do not need to have.' },
+      { id: 'd', label: 'Stare at the dog and shout at it', feedback: 'Direct staring and shouting may add pressure or arousal, making an uncertain encounter less predictable.' },
+    ],
+    explanation: 'Avoid sudden movement, give yourself space, and look for a safe route or the owner.',
+  },
+  {
+    id: 'jumping', perspective: 'person', cue: 'excited', title: 'A dog begins jumping', description: 'A leashed dog pulls toward you and jumps.', difficulty: 'Intermediate', answer: 'a',
+    options: [
+      { id: 'a', label: 'Step away and ask the owner to hold the dog close', feedback: 'Distance and a clear request let the owner manage the dog while keeping you out of an unwanted interaction.' },
+      { id: 'b', label: 'Push the dog down with your hands', feedback: 'Using your hands brings you into closer contact and may increase jumping, excitement, or the risk of a scratch.' },
+      { id: 'c', label: 'Wave your arms to make the dog stop', feedback: 'Large, fast movements can add excitement and make the interaction feel more chaotic.' },
+      { id: 'd', label: 'Hold the dog’s collar yourself', feedback: 'Reaching for an unfamiliar dog’s collar puts your hands near its head and takes over handling from the owner.' },
+    ],
+    explanation: 'Create distance and ask the owner to keep the dog close. You do not need to interact.',
+  },
+  {
+    id: 'asked-to-pet', perspective: 'person', cue: 'consent', title: 'Asked to say hello', description: 'An owner asks whether you want to pet their dog.', difficulty: 'Beginner', answer: 'd',
+    options: [
+      { id: 'a', label: 'Agree so you do not seem rude', feedback: 'Ignoring your own discomfort can leave you tense and committed to an interaction you did not want.' },
+      { id: 'b', label: 'Lean over and pat the dog on the head', feedback: 'Leaning over creates close contact and may feel uncomfortable for you or the dog, especially without a gradual introduction.' },
+      { id: 'c', label: 'Hold out your hand without answering', feedback: 'Offering your hand has already started the greeting before you have chosen whether you feel comfortable.' },
+      { id: 'd', label: 'Say “No thanks” and ask for some space', feedback: 'A polite, direct boundary keeps the interaction optional and tells the owner exactly what would help.' },
+    ],
+    explanation: 'It is always okay to decline and request space.',
+  },
+  {
+    id: 'cross-road-owner', perspective: 'owner', cue: 'leave', title: 'Someone crosses the road', description: 'A person sees your dog and immediately crosses away.', difficulty: 'Beginner', answer: 'c',
+    options: [
+      { id: 'a', label: 'Cross too so you can explain your dog is friendly', feedback: 'Following removes the distance they intentionally created and may make them feel pursued.' },
+      { id: 'b', label: 'Shout reassurance across the road', feedback: 'Calling attention to them can create social pressure, while reassurance does not change the boundary they chose.' },
+      { id: 'c', label: 'Continue calmly with your dog kept close', feedback: 'Letting the person keep their distance respects the boundary without making the moment bigger.' },
+      { id: 'd', label: 'Loosen the lead because they are farther away', feedback: 'Extra lead can still let your dog move toward the road or close the distance unexpectedly.' },
+    ],
+    explanation: 'Continue calmly and give them space rather than following or questioning them.',
+  },
+  {
+    id: 'busy-path-owner', perspective: 'owner', cue: 'passing', title: 'A narrow, busy path', description: 'Your dog is excited as several people approach.', difficulty: 'Intermediate', answer: 'a',
+    options: [
+      { id: 'a', label: 'Move aside, shorten the lead, and let people pass', feedback: 'Creating a predictable passing lane limits rushing and lets everyone continue without an unwanted greeting.' },
+      { id: 'b', label: 'Let your dog greet each person', feedback: 'Multiple greetings can increase excitement and block a narrow route for people who may not want contact.' },
+      { id: 'c', label: 'Wait in the centre and ask others to squeeze past', feedback: 'Holding the narrowest space forces people closer to an excited dog and leaves little room for anyone to adjust.' },
+      { id: 'd', label: 'Tell everyone your dog just wants to play', feedback: 'Explaining intent does not control movement or give people the physical space needed to pass comfortably.' },
+    ],
+    explanation: 'Create room, keep control of movement, and let people pass without a greeting.',
+  },
 ]
 
 export const signals: Signal[] = [

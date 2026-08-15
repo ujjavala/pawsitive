@@ -147,7 +147,7 @@ Because Pawsitive mixes educational content, stateful rewards and model output, 
 
 The project uses **Vitest and React Testing Library**. The current automated suite checks the required lesson, scenario, signal and achievement counts; unique IDs and answer keys; two-way scenario links; confidence clamping and one-time rewards; and the dog-analysis schema. It also contains regression cases for unsafe AI phrases including "definitely friendly", "won't bite", "you can approach this dog" and "safe to approach".
 
-Before submission, the strict TypeScript check, all **14 automated tests**, and the Vite production build pass.
+Before submission, the strict TypeScript check, all **15 automated tests**, and the Vite production build pass.
 
 ## Why I Built It
 
