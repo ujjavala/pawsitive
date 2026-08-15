@@ -96,7 +96,16 @@ export default function Settings() {
         </Card>
         <Card className="gemini-config-card">
           <span className="feature-icon blue"><Cpu/></span>
-          <div><Eyebrow>Private fallback</Eyebrow><h3>{device.title}</h3><p>{device.detail}</p><small>An initial browser-managed model download may be required. Once installed, inference is local and the photo is not sent to a server.</small></div>
+          <div>
+            <Eyebrow>Private fallback</Eyebrow>
+            <h3>{device.title}</h3>
+            <p>{device.detail}</p>
+            <small>
+              An initial browser-managed model download may be required. Once installed, inference is local and the photo is not sent to a server.
+              <br/><br/>
+              <strong>Prerequisites:</strong> Chrome 148+ on a supported desktop device, sufficient storage and compatible hardware. <a className="requirements-link" href="https://developer.chrome.com/docs/ai/get-started" target="_blank" rel="noreferrer">View Chrome’s official requirements<span className="sr-only"> (opens in a new tab)</span></a>.
+            </small>
+          </div>
         </Card>
         <Card className="setting-row danger-zone">
           <span className="feature-icon coral"><RotateCcw/></span>
