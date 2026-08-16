@@ -48,6 +48,13 @@ export interface DogSignal {
   explanation: string
 }
 export interface DogAnalysis {
+  breedEstimate: {
+    breed: string
+    confidence: 'low' | 'medium' | 'high'
+    explanation: string
+    typicalCharacteristics: string[]
+    typicalBehaviours: string[]
+  }
   visibleSignals: DogSignal[]
   possibleInterpretation: string
   uncertainties: string[]

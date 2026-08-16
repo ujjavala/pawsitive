@@ -184,10 +184,10 @@ export default function UnderstandDog() {
           <Button className="button-secondary" onClick={reset}><RotateCcw size={17}/> Try another photo</Button>
         </div>
         <div className="results-grid">
-          <div><div className="photo-card">
+          <div className="photo-result-column"><div className="photo-card">
             {analysis.source === 'demo' ? <div className="demo-dog-visual"><DogCueAnimation cue="sample-loose" compact/></div> : <img src={preview} alt="Uploaded dog for body-language analysis"/>}
             <span>{photoLabel}</span>
-          </div></div>
+          </div><Card className="breed-estimate"><Eyebrow>Possible breed</Eyebrow><strong>{analysis.breedEstimate.breed}</strong><p>{analysis.breedEstimate.explanation}</p><small>{analysis.breedEstimate.confidence} visual confidence · appearance only</small><div className="breed-traits"><div><b>Typical characteristics</b><ul>{analysis.breedEstimate.typicalCharacteristics.map((trait) => <li key={trait}>{trait}</li>)}</ul></div><div><b>Possible breed behaviours</b><ul>{analysis.breedEstimate.typicalBehaviours.map((trait) => <li key={trait}>{trait}</li>)}</ul></div></div><p className="breed-caveat">Breed tendencies do not predict this individual dog’s personality or behaviour.</p></Card></div>
           <div className="result-stack">
             <Card className="result-card observe"><span className="feature-icon blue"><Eye/></span><div><Eyebrow>What we can observe</Eyebrow>{analysis.visibleSignals.map((signal) => <div className="signal-result" key={signal.signal}><span>🐾</span><div><strong>{signal.signal}</strong><p>{signal.explanation}</p><small>{signal.confidence} visual confidence</small></div></div>)}</div></Card>
             <Card className="result-card"><span className="feature-icon yellow"><Lightbulb/></span><div><Eyebrow>What this might indicate</Eyebrow><p>{analysis.possibleInterpretation}</p></div></Card>

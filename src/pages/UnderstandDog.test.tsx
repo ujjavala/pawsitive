@@ -30,6 +30,20 @@ afterEach(() => {
 })
 
 describe('Understand This Dog', () => {
+  it('shows the possible breed below the dog photo', async () => {
+    const user = userEvent.setup()
+    render(<MemoryRouter><UnderstandDog/></MemoryRouter>)
+
+    await user.click(screen.getByRole('button', { name: /try the labelled demo photo/i }))
+
+    const breed = screen.getByText(demoAnalysis.breedEstimate.breed)
+    expect(breed).toBeInTheDocument()
+    expect(breed.closest('.breed-estimate')).toBeInTheDocument()
+    expect(screen.getByText('Typical characteristics')).toBeInTheDocument()
+    expect(screen.getByText('Possible breed behaviours')).toBeInTheDocument()
+    expect(screen.getByText(demoAnalysis.breedEstimate.typicalBehaviours[0])).toBeInTheDocument()
+  })
+
   it('uses private on-device analysis when the server has no key', async () => {
     const { source, ...content } = demoAnalysis
     void source
