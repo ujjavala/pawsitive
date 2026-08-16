@@ -13,6 +13,7 @@ Pawsitive is a calm, playful learning application for people who feel nervous ar
 - Animated SVG guide dog Pip, reduced-motion support, and optional synthesized UI sound
 - Server-side Gemini dog-image analysis with an environment-configured, allowlisted model
 - Private on-device image analysis with Chrome's built-in Gemini Nano Prompt API when no server key is configured
+- Cautious possible-breed identification with visual confidence, typical characteristics, and breed-level behavioural tendencies
 - Structured output, shared runtime validation, and conservative safety language across both AI paths
 - A clearly labelled seeded demo result when no API key is available
 - Responsive navigation and keyboard-accessible controls
@@ -23,7 +24,7 @@ The browser hosts a lazy-routed React application. Zustand persists onboarding, 
 
 Image analysis is server-first. When `GEMINI_API_KEY` is configured, the photo crosses a same-origin Vercel Function boundary, where uploads are constrained before Gemini is called and model output is validated before returning to the UI. During ordinary Vite development, the same handler is mounted locally at `/api/analyze-dog`; Vercel CLI and login are not required.
 
-When the server reports that no Gemini key is configured, Pawsitive progressively checks Chrome's built-in `LanguageModel` Prompt API. On supported devices, Gemini Nano receives the image and produces constrained JSON entirely on-device. Cloud and on-device output share the same prompt, Zod schema, prohibited-certainty checks, and UI. Unsupported browsers retain the honest unavailable state and labelled seeded demo.
+When the server reports that no Gemini key is configured, Pawsitive progressively checks Chrome's built-in `LanguageModel` Prompt API. On supported devices, Gemini Nano receives the image and produces constrained JSON entirely on-device. Cloud and on-device output share the same prompt, Zod schema, prohibited-certainty checks, and UI. Results include a possible breed or mix, the visual evidence and confidence behind that estimate, typical physical characteristics, and cautiously worded breed-level behavioural tendencies. Unsupported browsers retain the honest unavailable state and labelled seeded demo.
 
 No authentication, profile, database, or uploaded-image storage is used.
 
@@ -64,7 +65,7 @@ The initial model download can take time, so Pawsitive displays progress and pro
 
 ## AI safety
 
-The shared AI prompt is constrained to observable visual signals. It must not diagnose emotion, predict behaviour, certify safety, or instruct someone to approach an unfamiliar dog. Both server Gemini and on-device Gemini Nano responses are constrained to JSON, validated with the same Zod schema, and checked for prohibited certainty claims. A single image is always presented as incomplete evidence.
+The shared AI prompt is constrained to observable visual signals. It must not diagnose emotion, predict behaviour, certify safety, or instruct someone to approach an unfamiliar dog. A possible breed is presented as an appearance-based estimate rather than a fact, with an honest visual-confidence level and support for an explicit **Breed unclear** result. Typical characteristics and possible behaviours describe general breed-level tendencies only; the UI states that they cannot predict the individual dog's personality, emotional state, safety, or future behaviour. Both server Gemini and on-device Gemini Nano responses are constrained to JSON, validated with the same Zod schema, and checked for prohibited certainty claims. A single image is always presented as incomplete evidence.
 
 Images are processed only after the user explicitly selects **Help me understand**. Server analysis sends the image through the same-origin function and does not persist it. On-device results are explicitly labelled and the image stays on the user's device.
 
@@ -76,7 +77,7 @@ Images are processed only after the user explicitly selects **Help me understand
 4. Practise the footpath scenario.
 5. Switch to the owner perspective.
 6. Open **Understand a Dog** and choose the labelled demo photo or upload a real image.
-7. Review structured observations, uncertainty, and conservative guidance.
+7. Review the possible breed identification, general breed characteristics, structured body-language observations, uncertainty, and conservative guidance.
 8. Open Progress to see confidence and achievements update.
 
 ## Content disclaimer
