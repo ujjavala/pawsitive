@@ -73,7 +73,7 @@ You might be walking down a footpath when a dog approaches with its owner. Inste
 
 The perspective can then switch to the owner's side. The same encounter looks very different when you realise that giving someone space may be more helpful than reassuring them that your dog is friendly.
 
-Finally, **Understand This Dog** lets users upload a dog photo and use Gemini to explore the visible body-language cues. It uses the configured server model when a Gemini key is available and falls back to Chrome's built-in Gemini Nano model when the server has no key and the browser supports multimodal on-device AI.
+Finally, **Understand This Dog** lets users upload a dog photo and use Gemini to explore the visible body-language cues. The result also suggests a possible breed or breed mix, explains which visible features informed the estimate, and shares typical physical characteristics and cautiously worded breed-level behavioural tendencies. It uses the configured server model when a Gemini key is available and falls back to Chrome's built-in Gemini Nano model when the server has no key and the browser supports multimodal on-device AI.
 
 
 ![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/tg37x4bp18330hv8iixe.png)
@@ -118,11 +118,15 @@ The goal is simple: **make the app feel alive without making it overwhelming.**
 
 The most interesting part of Pawsitive is **Understand This Dog**, where I wanted AI to do something more meaningful than power another generic chatbot.
 
-A user can upload a JPG, PNG or WebP photo of a dog, and Gemini analyses the visible signals in the image. The response is structured into five parts:
+A user can upload a JPG, PNG or WebP photo of a dog, and Gemini analyses the visible signals in the image. The response is structured into six parts:
 
 ![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/untu6j691jycj4e3mmyd.png)
 
 
+
+**Possible breed** — an appearance-based breed or breed-mix estimate, the visible traits behind it, and an honest visual-confidence level. If the image is not clear enough, the model can simply return **Breed unclear** instead of forcing a guess.
+
+The breed section also includes typical physical characteristics and possible breed-level behaviours. These are written as broad tendencies using language such as "often", "may", and "commonly"—never as claims about the individual dog. A clear reminder explains that breed cannot predict this dog's personality, emotional state, safety, or future behaviour.
 
 **What we can see** — observable cues such as posture, ears, tail visibility and body position, each with a visual-confidence level.
 
@@ -138,25 +142,37 @@ That last part was especially important to me.
 
 I didn't want to build an AI-powered "Is this dog safe?" detector. A photograph cannot reliably tell you that a dog is safe, friendly, or won't bite.
 
-So the Gemini integration is deliberately designed to acknowledge uncertainty, using language such as "may indicate" and "can be consistent with" rather than making definitive claims.
+So the Gemini integration is deliberately designed to acknowledge uncertainty, using language such as "may indicate" and "can be consistent with" rather than making definitive claims. That same principle applies to breed identification: visual similarity can suggest a breed or mix, but appearance alone cannot confirm ancestry or tell us how an individual dog will behave.
 
 That safety work does not rely only on the interface. In the server path, the browser sends the image to a same-origin **Vercel Function**, so the Gemini key is never exposed to client code. The function rejects unsupported files and images larger than 5 MB before calling Gemini, requests JSON matching a schema, validates the result with Zod, and rejects responses containing certainty claims such as "definitely friendly", "won't bite" or "safe to approach". The UI validates the response again before rendering it as cards, never as model-generated HTML.
 
-The Gemini model is configured server-side with `GEMINI_MODEL` and checked against an allowlist. The current default is **Gemini 3.5 Flash-Lite**, and unsupported model IDs fall back to that default instead of being passed through to the provider. For local development, Vite loads only the server-side Gemini environment variables and mounts the same `/api/analyze-dog` handler used in deployment. That means `npm run dev` runs the UI and local API together without requiring the Vercel CLI or a Vercel login.
+The Gemini model is configured server-side with `GEMINI_MODEL` and checked against an allowlist. The current default is **Gemini 3.5 Flash-Lite**, and unsupported model IDs fall back to this default rather than being passed through to the provider. For local development, Vite loads only the server-side Gemini environment variables and mounts the same `/api/analyze-dog` handler used in deployment. That means `npm run dev` runs the UI and local API together without requiring the Vercel CLI or a Vercel login.
 
 ### Private on-device fallback with Gemini Nano
 
 When the server reports that no `GEMINI_API_KEY` is configured, Pawsitive checks Chrome's built-in `LanguageModel` API with the exact text-and-image capabilities required by the feature. If the model is ready, the selected image is analysed locally. If Chrome needs to download the model first, the interface shows download progress and provides a cancel action.
 
-The on-device session receives the same cautious system instruction as server Gemini, accepts the selected photo as an image `Blob`, and returns JSON constrained by the same schema. Its output passes through the same Zod validation and certainty checks before anything is displayed. The session is destroyed after analysis to release browser resources, and successful results are clearly labelled **analysed privately on this device**.
+The on-device session receives the same cautious system instruction as server Gemini, accepts the selected photo as an image `Blob`, and returns JSON constrained by the same schema. That schema includes the possible breed, confidence, supporting visual evidence, typical characteristics, possible breed behaviours, body-language observations, uncertainty, and safety guidance. Its output passes through the same Zod validation and certainty checks before anything is displayed. The session is destroyed after analysis to release browser resources, and successful results are clearly labelled **analysed privately on this device**.
 
 ### What amazed me about the private mode
 
 This became one of the most surprising parts of the whole project. I expected the private on-device mode to be a useful fallback, but I did not expect Gemini Nano to perform this well. In my testing, its observations and cautious interpretations were often remarkably close to the results produced through the API-key-powered server models.
 
+API mode:
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/00lficr0bohhmiavuiq9.png)
+
+Private mode:
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/ye54j2krynoe3vofr7ul.png)
+
+
+
+
 That feels like a small glimpse of how quickly AI is advancing: a browser can now examine an image, follow a detailed instruction, produce structured output and respect the same safety constraints—all without an API key and without sending the photo to a server. The privacy benefit is not achieved by giving up the core experience; the result remains genuinely useful.
 
 There are still differences between devices and models, so I would not call the two paths identical or treat my experiments as a formal benchmark. Even so, seeing capable multimodal AI run privately inside Chrome was a real **wow moment** for me. Gemini Nano started as a fallback and ended up feeling like one of Pawsitive's most exciting features—and a sign of the possibilities that on-device AI is beginning to unlock.
+
 
 The fallback order is:
 
@@ -265,12 +281,17 @@ I'm submitting Pawsitive for **Best Use of Google AI** because Gemini is part of
 
 Through **Understand This Dog**, Gemini's multimodal capabilities help users explore visible dog body-language cues while deliberately teaching the limits of what can be inferred from a single image. The app can use a securely configured server model or Chrome's built-in Gemini Nano model, with shared structured-output and safety controls across both paths.
 
+A curious dog:
 
-![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/tr3wistu9xwmam2chxjf.png)
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/85ynrxjzaic5berrj883.png)
 
 
-![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/00lficr0bohhmiavuiq9.png)
 
+A playful dog:
+
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/21zf0om01xbwtkuv20as.png)
 
 
 
@@ -333,6 +354,11 @@ There is a lot of space between those two thoughts.
 I wanted to build something that helps close it.
 
 And, perhaps selfishly, something that might one day help me stop jumping every time a dog barks. 🐾
+
+
+![Image description](https://dev-to-uploads.s3.us-east-2.amazonaws.com/uploads/articles/fdtia8uf26t2e6i3yd5l.png)
+
+
 
 > **You don't have to love dogs.**
 >
